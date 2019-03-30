@@ -17,23 +17,23 @@ enum Action: Int, CaseIterable {
 
 let oppStrategy: [Double] = [0.4, 0.3, 0.3]
 var regretSum: [Double] = [0, 0, 0]
-var strategy: [Double] = [0, 0, 0]
+var strategySum: [Double] = [0, 0, 0]
 
 func getStrategy() -> [Double] {
     var noramlizingSum: Double = 0
     for i in 0..<Action.allCases.count {
-        strategy[i] = regretSum[i] > 0 ? regretSum[i] : 0
-        noramlizingSum += strategy[i]
+        strategySum[i] = regretSum[i] > 0 ? regretSum[i] : 0
+        noramlizingSum += strategySum[i]
     }
     for i in 0..<Action.allCases.count {
         if noramlizingSum > 0 {
-            strategy[i] /= noramlizingSum
+            strategySum[i] /= noramlizingSum
         } else {
-            strategy[i] = 1.0 / Double(Action.allCases.count)
+            strategySum[i] = 1.0 / Double(Action.allCases.count)
         }
-        strategy[i] += strategy[i]
+        strategySum[i] += strategySum[i]
     }
-    return strategy
+    return strategySum
 }
 
 func getAction(for strategy: [Double]) -> Action {
@@ -53,17 +53,14 @@ func getAction(for strategy: [Double]) -> Action {
 func train(iterations: Int) {
     var actionUtility: [Double] = [0, 0, 0]
     for _ in 0..<iterations {
-        // "Get regret-matched mixed-strategy actions"
-        let strat = getStrategy()
-        let myAction = getAction(for: strat)
+        let strategy = getStrategy()
+        let myAction = getAction(for: strategy)
         let oppAction = getAction(for: oppStrategy)
         
-        // "Compute action utilities"
         actionUtility[oppAction.rawValue] = 0
         actionUtility[oppAction.rawValue == Action.allCases.count - 1 ? 0 : oppAction.rawValue + 1] = 1
         actionUtility[oppAction.rawValue == 0 ? Action.allCases.count - 1 : oppAction.rawValue - 1] = -1
         
-        // "Accumulate action regrets"
         for i in 0..<Action.allCases.count {
             regretSum[i] += actionUtility[i] - actionUtility[myAction.rawValue]
         }
@@ -74,11 +71,11 @@ func getAverageStragegy() -> [Double] {
     var avgStrategy: [Double] = [0, 0, 0]
     var normalizingSum: Double = 0
     for i in 0..<Action.allCases.count {
-        normalizingSum += strategy[i]
+        normalizingSum += strategySum[i]
     }
     for i in 0..<Action.allCases.count {
         if normalizingSum > 0 {
-            avgStrategy[i] = strategy[i] / normalizingSum
+            avgStrategy[i] = strategySum[i] / normalizingSum
         } else {
             avgStrategy[i] = 1.0 / Double(Action.allCases.count)
         }
